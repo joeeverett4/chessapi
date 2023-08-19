@@ -1,3 +1,4 @@
+import imp
 from flask import Flask, jsonify
 from flask_cors import CORS
 import io
@@ -7,17 +8,6 @@ from getGame import fetch_and_process_games
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for the entire app
-
-def convert_san_to_pgn(san_moves):
-    pgn_moves = []
-    board = chess.Board()
-
-    for san_move in san_moves:
-        move = chess.Move.from_uci(san_move)
-        pgn_moves.append(board.san(move))
-        board.push(move)
-
-    return pgn_moves
 
 @app.route('/get_games', methods=['GET'])
 def get_games():
@@ -43,28 +33,41 @@ def get_games():
         move_number = 1
 
         for move in game.mainline_moves():
-            # Apply the move to the board
-            board.push(move)
-            print(move)
             # Analyze the position
             info = engine.analyse(board, chess.engine.Limit(time=2.0))
 
-            evaluation = info["score"].white().score()
+            if info["score"] is not None and info["score"].white() is not None:
+             score_value = info["score"].white().score()
+
+             if score_value is not None:
+              evaluation = score_value
+             else:
+              evaluation = 0  # Set a default value or handle it according to your needs
+            else:
+             evaluation = 0  # Set a default value or handle it according to your needs
+
+
+            print(move)
+            print(evaluation)
+            print(type(evaluation))
             eval_change = abs(evaluation - prev_evaluation)
 
             mistake = "true" if eval_change >= 100 else "false"
 
-            
+            # Transform SAN to PGN here
+            san_move = move.uci()
+            pgn_move = board.san(move)
 
-            move_data = {"move": move.uci(), "mistake": mistake}
+            move_data = {"move": pgn_move, "mistake": mistake}
             game_data.append(move_data)
+
+            # Apply the move to the board after transforming
+            board.push(move)
 
             prev_evaluation = evaluation
             move_number += 1
 
-        san_moves = [move_data["move"] for move_data in game_data]
-        pgn_moves = convert_san_to_pgn(san_moves)
-        games_data.append(pgn_moves)  # Store the PGN moves for the current game
+        games_data.append(game_data)  # Store the move data for the current game
 
         # Read the next game
         game = chess.pgn.read_game(pgn_stream)
