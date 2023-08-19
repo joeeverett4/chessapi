@@ -5,14 +5,33 @@ import io
 import chess.pgn
 import chess.engine
 from getGame import fetch_and_process_games
+from getGame import fetch_and_json_games
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for the entire app
+
+@app.route('/get_pgn', methods=['GET'])
+  
+def get_pgn():
+    # Fetch and process games data using the function from getGame.py
+    lichess_pgn_text = fetch_and_json_games()
+    print(lichess_pgn_text)
+    
+    
+    return jsonify(objects=lichess_pgn_text), 200
+
+
+    
 
 @app.route('/get_games', methods=['GET'])
 def get_games():
     # Fetch and process games data using the function from getGame.py
     sample_pgn = fetch_and_process_games()
+
+    # Split the PGN string into individual PGNs
+    lichess_pgns = sample_pgn.split('\n\n')
+
+    print(lichess_pgns)
 
     # Initialize the Stockfish engine
     engine = chess.engine.SimpleEngine.popen_uci("stockfish")
@@ -24,6 +43,9 @@ def get_games():
 
     # Read individual games from the sample PGN data
     game = chess.pgn.read_game(pgn_stream)
+     
+    print(game) 
+
     while game:
         game_data = []  # List to store move data for the current game
 
@@ -47,9 +69,6 @@ def get_games():
              evaluation = 0  # Set a default value or handle it according to your needs
 
 
-            print(move)
-            print(evaluation)
-            print(type(evaluation))
             eval_change = abs(evaluation - prev_evaluation)
 
             mistake = "true" if eval_change >= 100 else "false"
