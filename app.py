@@ -56,7 +56,7 @@ def get_games():
 
         for move in game.mainline_moves():
             # Analyze the position
-            info = engine.analyse(board, chess.engine.Limit(time=2.0))
+            info = engine.analyse(board, chess.engine.Limit(time=1.0))
 
             if info["score"] is not None and info["score"].white() is not None:
              score_value = info["score"].white().score()
