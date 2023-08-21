@@ -31,7 +31,6 @@ def get_games():
     # Split the PGN string into individual PGNs
     lichess_pgns = sample_pgn.split('\n\n')
 
-    print(lichess_pgns)
 
     # Initialize the Stockfish engine
     engine = chess.engine.SimpleEngine.popen_uci("stockfish")
@@ -56,28 +55,46 @@ def get_games():
 
         for move in game.mainline_moves():
             # Analyze the position
-            info = engine.analyse(board, chess.engine.Limit(time=1.0))
+            
+            info = engine.analyse(board, chess.engine.Limit(time=2.0))
+
+            if move_number == 1:
+
+              number_of_moves = sum(1 for _ in game.mainline_moves())
+
+              print(number_of_moves)
+
+              number_of_moves = number_of_moves // 2
+
+              game_data.append(number_of_moves)
+
+              #code stops here on first iteration
 
             if info["score"] is not None and info["score"].white() is not None:
-             score_value = info["score"].white().score()
+                score_value = info["score"].white().score()
 
-             if score_value is not None:
-              evaluation = score_value
-             else:
-              evaluation = 0  # Set a default value or handle it according to your needs
+                if score_value is not None:
+                    evaluation = score_value
+                else:
+                    evaluation = 0  # Set a default value or handle it according to your needs
             else:
-             evaluation = 0  # Set a default value or handle it according to your needs
-
+                evaluation = 0  # Set a default value or handle it according to your needs
+            
+            print(move)
+            print(evaluation)
 
             eval_change = abs(evaluation - prev_evaluation)
 
-            mistake = "true" if eval_change >= 100 else "false"
+            next_mistake = "true" if eval_change >= 100 else "false"
 
-            # Transform SAN to PGN here
-            san_move = move.uci()
             pgn_move = board.san(move)
 
-            move_data = {"move": pgn_move, "mistake": mistake}
+            move_data = {
+                "move": pgn_move,
+                "next_mistake": next_mistake,
+                "game_length" : number_of_moves,
+                "evaluation": evaluation,
+            }
             game_data.append(move_data)
 
             # Apply the move to the board after transforming
