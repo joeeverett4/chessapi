@@ -72,7 +72,8 @@ def get_games():
 
             if info["score"] is not None and info["score"].white() is not None:
                 score_value = info["score"].white().score()
-
+                pv_moves = info["pv"]
+                print(pv_moves)
                 if score_value is not None:
                     evaluation = score_value
                 else:
