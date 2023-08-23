@@ -1,34 +1,25 @@
-import imp
-from flask import Flask, jsonify
-from flask_cors import CORS
+import schedule
+import time
 import io
 import chess.pgn
 import chess.engine
+import json
+import sqlite3
+from datetime import date
 from getGame import fetch_and_process_games
 from getGame import fetch_and_json_games
 
-app = Flask(__name__)
-CORS(app)  # Enable CORS for the entire app
-
-@app.route('/get_pgn', methods=['GET'])
-  
-def get_pgn():
-    # Fetch and process games data using the function from getGame.py
-    lichess_pgn_text = fetch_and_json_games()
-    print(lichess_pgn_text)
-    
-    
-    return jsonify(objects=lichess_pgn_text), 200
 
 
-@app.route('/get_games', methods=['GET'])
-def get_games():
+
+def job():
+    print('Running the cron job...')
+
+    conn = sqlite3.connect('games.sqlite')
+    cursor = conn.cursor()
+    # Run your code here
     # Fetch and process games data using the function from getGame.py
     sample_pgn = fetch_and_process_games()
-
-    # Split the PGN string into individual PGNs
-    lichess_pgns = sample_pgn.split('\n\n')
-
 
     # Initialize the Stockfish engine
     engine = chess.engine.SimpleEngine.popen_uci("stockfish")
@@ -109,7 +100,23 @@ def get_games():
 
     engine.quit()  # Quit the Stockfish engine
 
-    return jsonify(games_data)
+    print(games_data)
 
-if __name__ == '__main__':
-    app.run(debug=True)
+    user_id = 123  # Replace with the actual user ID
+    desired_date = '2023-08-23'  # Replace with the desired date in 'YYYY-MM-DD' format
+
+    for game in games_data:
+       new_data_json = json.dumps(game)
+       cursor.execute('INSERT OR REPLACE INTO games (user_id, date, data) VALUES (?, ?, ?)', (user_id, desired_date, new_data_json))
+
+    conn.commit()
+    conn.close()           
+
+
+# Schedule the job to run every 5 minutes
+schedule.every(5).minutes.do(job)
+
+# Keep the script running
+while True:
+    schedule.run_pending()
+    time.sleep(1)
