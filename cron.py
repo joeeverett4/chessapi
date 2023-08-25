@@ -102,7 +102,7 @@ def job():
 
     print(games_data)
 
-    user_id = 123  # Replace with the actual user ID
+    user_id = 223  # Replace with the actual user ID
     desired_date = '2023-08-23'  # Replace with the desired date in 'YYYY-MM-DD' format
 
     for game in games_data:

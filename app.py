@@ -1,5 +1,5 @@
-import imp
-from flask import Flask, jsonify
+import sqlite3
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import io
 import chess.pgn
@@ -21,8 +21,35 @@ def get_pgn():
     return jsonify(objects=lichess_pgn_text), 200
 
 
+
 @app.route('/get_games', methods=['GET'])
+
 def get_games():
+
+    user_id = int(request.args.get('user_id'))  # Get user_id from the query parameter
+
+    # Connect to the SQLite database
+    connection = sqlite3.connect('games.sqlite')
+    cursor = connection.cursor()
+
+    # Execute a SELECT statement to fetch data for the specified user_id
+    cursor.execute('SELECT date, data FROM games WHERE user_id = ?', (user_id,))
+    result = cursor.fetchall()
+
+    # Close the cursor and connection
+    cursor.close()
+    connection.close()
+
+    # Convert query results to a list of dictionaries
+    data_list = [{'date': row[0], 'data': row[1]} for row in result]
+
+    # Return the data as JSON to the frontend
+    return jsonify(data_list)
+
+
+
+@app.route('/init_games', methods=['GET'])
+def init_games():
     # Fetch and process games data using the function from getGame.py
     sample_pgn = fetch_and_process_games()
 
@@ -108,6 +135,8 @@ def get_games():
         game = chess.pgn.read_game(pgn_stream)
 
     engine.quit()  # Quit the Stockfish engine
+
+    print(games_data)
 
     return jsonify(games_data)
 

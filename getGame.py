@@ -7,7 +7,7 @@ import json
 def fetch_and_process_games():
 
     # URL of the API endpoint
-    url = "https://lichess.org/api/games/user/Calgarysnow?max=3"
+    url = "https://lichess.org/api/games/user/Calgarysnow?max=2"
 
 # Send a GET request
     response = requests.get(url)
@@ -25,7 +25,7 @@ def fetch_and_process_games():
 def fetch_and_json_games():
 
     # URL of the API endpoint
-    url = "https://lichess.org/api/games/user/Calgarysnow?max=3"
+    url = "https://lichess.org/api/games/user/Calgarysnow?max=2"
 
 # Send a GET request
     response = requests.get(
