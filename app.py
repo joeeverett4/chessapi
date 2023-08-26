@@ -68,7 +68,7 @@ def init_games():
     # Read individual games from the sample PGN data
     game = chess.pgn.read_game(pgn_stream)
      
-    print(game) 
+    print("hello") 
 
     while game:
         game_data = []  # List to store move data for the current game
